@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8" />
+    <script language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script language="javascript" src="//cdnjs.cloudflare.com/ajax/libs/knockout/2.3.0/knockout-min.js"></script>
+    <title>Morpho-Syntax Editor - Franco-Thai NLP</title>
+</head>
+<body>
+    <div>
+      <a href="http://naist.cpe.ku.ac.th/~imm/iKnow2Publication/Proceeding/AnnotEd-w_Vee.pdf">Publication</a>
+    </div>
+    <div id="input">
+        <input data-bind="value: text" placeholder="Thai text" >
+        <button data-bind="click: analyze">Analyze</button>
+    </div>
+    <div id="answer" data-bind="foreach: answers">
+        <!-- ko if: $data.valid -->
+        <span data-bind="text: $data.text, click: $parent.choice" ></span>
+        <!-- /ko -->
+    </div>
+    <div id="choice">
+        <ul data-bind="foreach: choices">
+            <li data-bind="text: $data.text, click: $parent.select"></li>
+        </ul>
+    </div>
+</body>
+<script language="javascript">
+//<!--
+function ViewModel() {
+    var self = this;
+    self.answers = ko.observable([]);
+    self.choices = ko.observable([]);
+    self.text = ko.observable("ให้การรักษาพื้นที่");
+    self.analyze = function() {
+        $.post('/analyze', {text: self.text()}).done(function(data) {
+           self.answers($.parseJSON(data));
+        });
+    }    
+    self.choice = function(el) {
+        $.post("/choices", {s: el.s}).done(function(data) {
+            var choices = $.parseJSON(data);
+            choices.forEach(function(ch) {
+                ch.text = "---" + ch.text + "---";
+            });
+           self.choices(choices); 
+        });
+    }
+    
+    self.select = function(ch) {
+        self.choices([]);
+        $.post("/select", {s: ch.s, e: ch.e}).done(function(data) {
+            var new_ans = $.parseJSON(data).answer;
+            self.answers(new_ans); 
+        });
+    }
+    self.analyze();
+}
+
+ko.applyBindings(new ViewModel());
+//-->
+</script>
+</html>  
