@@ -1,9 +1,7 @@
 import cherrypy
 import json
 from wordtrellis import *
-import pprint
 import os
-import kid
 
 def decor_diff(change_list, txt):
     def decor(change):
